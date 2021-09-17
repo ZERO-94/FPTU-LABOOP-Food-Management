@@ -5,11 +5,13 @@ import dto.Food;
 import java.io.IOException;
 import services.Refrigerator;
 import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import utils.InputUtils;
 import java.util.InputMismatchException;
+import static utils.InputUtils.inputYesNo;
 
 /**
  *
@@ -44,7 +46,7 @@ public class UiDisplay {
             mainMenu.displayMenu();
             this.sc = new Scanner(System.in);
             try {
-                choice = InputUtils.inputInt("", 0, 6);
+                choice = InputUtils.inputInt("", 0, 6, false);
                 switch (choice) {
                     case 0:
                         testingFoods();
@@ -84,19 +86,19 @@ public class UiDisplay {
         boolean stillContinue = false;
         do {
             try {
-                Food newFood = createNewFood();
-                if (refrigerator.searchFoodById(newFood.getId()) != null) {
+                Food newFood = null;
+                newFood = createNewFood();
+                if (refrigerator.searchFoodById(newFood.getId()) == null) {
                     String result = refrigerator.addFood(newFood) ? "Added successful!" : "Failed to add!";
                     System.out.println(result);
                 } else {
                     System.out.println("This food's id already existed!");
                 }
-            } catch (InputMismatchException e) {
-                System.out.println("invalid input type");
             } catch (Exception e) {
                 System.out.println(e.getMessage());
+                System.out.println("Failed to add!");
             } finally {
-                stillContinue = InputUtils.inputYesNo("Continue?(Y/n)");
+                stillContinue = InputUtils.inputYesNo("Continue to add new food?(Y/n)");
             }
         } while (stillContinue);
     }
@@ -106,7 +108,7 @@ public class UiDisplay {
         boolean stillContinue = false;
         do {
             try {
-                String keyword = InputUtils.inputString("Enter your keyword: ", 0, 20);
+                String keyword = InputUtils.inputString("Enter your keyword: ", 0, 20, true);
 
                 List<Food> neededFoods = refrigerator.searchFoodByName(keyword);
                 if (neededFoods != null) {
@@ -127,11 +129,12 @@ public class UiDisplay {
 
     public void removeFood() throws Exception {
         sc = new Scanner(System.in);
-        int id = InputUtils.inputInt("Enter new food's id: ", 1, 1000);
+        int id = InputUtils.inputInt("Enter food's id: ", 1, 1000, true);
 
         Food neededFood = refrigerator.searchFoodById(id);
         if (neededFood == null) {
-            throw new IllegalArgumentException("This food doesn't exist");
+            System.out.println("This food doesn't exist");
+            return;
         }
 
         System.out.println("The food you want to remove is: ");
@@ -161,7 +164,10 @@ public class UiDisplay {
     public void storeInFile() throws IllegalArgumentException, IOException, ClassNotFoundException {
         sc = new Scanner(System.in);
         String filename = "";
-        filename = InputUtils.inputString("Enter your file name: ", 1, 20);
+        
+        filename = InputUtils.inputString("Enter your file name: ", 1, 20, true);
+        if(filename.contains(".")) throw new IllegalArgumentException("invalid file name ( '.' is not allowed )");
+        
         List<Food> foodsCollection = refrigerator.getFoodsCollection();
         FileUtils.writeBinaryFoods(filename, foodsCollection);
 
@@ -169,20 +175,34 @@ public class UiDisplay {
         foodsInFile.stream().forEach(food -> System.out.println(food));
     }
 
-    public Food createNewFood() throws IllegalArgumentException, InputMismatchException {
+    public Food createNewFood() throws IllegalArgumentException{
         System.out.println("Enter new food information: ");
 
-        int id = InputUtils.inputInt("Enter new food's id: ", 1, 1000);
+        int id = InputUtils.inputInt("Enter new food's id: ", 1, 1000, true);
+        if(refrigerator.searchFoodById(id) != null) throw new IllegalArgumentException("This food already existed");
 
-        String name = InputUtils.inputString("Enter new food's name: ", 1, 20);
-        double weight = InputUtils.inputDouble("Enter new food's weight: ", 0.1, 1000);
-        String type = InputUtils.inputString("Enter new food's type: ", 1, 20);
-        String place = InputUtils.inputString("Enter new food's place: ", 1, 20);
+        String name = InputUtils.inputString("Enter new food's name: ", 1, 20, true);
+        double weight = InputUtils.inputDouble("Enter new food's weight: ", 0.1, 1000, true);
+        String type = InputUtils.inputString("Enter new food's type: ", 1, 20, true);
+        String place = InputUtils.inputString("Enter new food's place: ", 1, 20, true);
 
+        do {
         System.out.println("Enter new food's expired date ");
         System.out.print("Please enter with the format yyyy-MM-dd (Example: 2020-05-06): ");
-        String expiredDate = sc.nextLine();
-
-        return new Food(id, name, weight, type, place, expiredDate);
+        
+        String expiredDateInString = "";
+        LocalDate expiredDate = null;
+        try{
+            expiredDateInString = sc.nextLine();
+            expiredDate = LocalDate.parse(expiredDateInString);
+            return new Food(id, name, weight, type, place, expiredDate);
+        } catch(DateTimeParseException e) {
+            System.out.println("invalid date format");
+                boolean check = inputYesNo("Continue to enter this field ?(Y/n)");
+                if (check == false) {
+                    throw new IllegalArgumentException("Failed to input");
+                }
+        }
+        } while (true);
     }
 }
