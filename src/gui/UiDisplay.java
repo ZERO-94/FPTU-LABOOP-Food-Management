@@ -169,9 +169,10 @@ public class UiDisplay {
         if(filename.contains(".")) throw new IllegalArgumentException("invalid file name ( '.' is not allowed )");
         
         List<Food> foodsCollection = refrigerator.getFoodsCollection();
-        FileUtils.writeBinaryFoods(filename, foodsCollection);
+        FileUtils.writeFoodsIntoBinaryFile(filename, foodsCollection);
 
-        List<Food> foodsInFile = FileUtils.readBinaryFoods(filename);
+        //read again to check if file is written correctly
+        List<Food> foodsInFile = FileUtils.readFoodsFromBinaryFile(filename);
         foodsInFile.stream().forEach(food -> System.out.println(food));
     }
 
@@ -185,24 +186,8 @@ public class UiDisplay {
         double weight = InputUtils.inputDouble("Enter new food's weight: ", 0.1, 1000, true);
         String type = InputUtils.inputString("Enter new food's type: ", 1, 20, true);
         String place = InputUtils.inputString("Enter new food's place: ", 1, 20, true);
-
-        do {
-        System.out.println("Enter new food's expired date ");
-        System.out.print("Please enter with the format yyyy-MM-dd (Example: 2020-05-06): ");
+        LocalDate date = InputUtils.inputDate("Enter new food's expired date: ", true);
         
-        String expiredDateInString = "";
-        LocalDate expiredDate = null;
-        try{
-            expiredDateInString = sc.nextLine();
-            expiredDate = LocalDate.parse(expiredDateInString);
-            return new Food(id, name, weight, type, place, expiredDate);
-        } catch(DateTimeParseException e) {
-            System.out.println("invalid date format");
-                boolean check = inputYesNo("Continue to enter this field ?(Y/n)");
-                if (check == false) {
-                    throw new IllegalArgumentException("Failed to input");
-                }
-        }
-        } while (true);
+        return new Food(id, name, weight, type, place, date);
     }
 }

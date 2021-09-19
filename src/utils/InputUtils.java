@@ -1,5 +1,8 @@
 package utils;
 
+import dto.Food;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 
@@ -8,79 +11,83 @@ import java.util.Scanner;
  * @author kiman
  */
 public class InputUtils {
-
     public static String inputString(String message, int min, int max, boolean loop) throws IllegalArgumentException {
+        Scanner sc = new Scanner(System.in);
+        String input;
+        String exceptionMessage = "input length must be from " + min + " to " + max;
         do {
-            try {
-                Scanner sc = new Scanner(System.in);
-                System.out.print(message);
-                String input = sc.nextLine();
-                String exceptionMessage = "input length must be from " + min + " to " + max;
-                if (input.trim().length() > max || input.trim().length() < min) {
-                    throw new IllegalArgumentException(exceptionMessage);
-                }
+
+            System.out.print(message);
+            input = sc.nextLine();
+            if (input.trim().length() <= max && input.trim().length() >= min) {
                 return input;
-            } catch (Exception e) {
-                if(loop == false ) throw e;
-                System.out.println(e.getMessage());
-                boolean check = inputYesNo("Continue to enter this field ?(Y/n)");
-                if (check == false) {
-                    throw new IllegalArgumentException("Failed to input");
-                }
             }
+            handleInvalidInput(loop, exceptionMessage);
         } while (true);
     }
 
-    public static int inputInt(String message, int min, int max, boolean loop) throws IllegalArgumentException, InputMismatchException{
+    public static int inputInt(String message, int min, int max, boolean loop) throws IllegalArgumentException {
+        Scanner sc = new Scanner(System.in);
+        String exceptionMessage;
         do {
+            int input = 0;
+            sc = new Scanner(System.in); //reset input stream
+            System.out.print(message);
+
             try {
-                Scanner sc = new Scanner(System.in);
-                System.out.print(message);
-                int input = 0;
-                try {
-                    input = sc.nextInt();
-                } catch (InputMismatchException | NumberFormatException e) {
-                    throw new InputMismatchException("invalid input type");
-                }
-                String exceptionMessage = "input value must be from " + min + " to " + max;
-                if (input > max || input < min) {
-                    throw new IllegalArgumentException(exceptionMessage);
-                }
-                return input;
-            } catch (Exception e) {
-                if(loop == false ) throw e;
-                System.out.println(e.getMessage());
-                boolean check = inputYesNo("Continue to enter this field ?(Y/n)");
-                if (check == false) {
-                    throw new IllegalArgumentException("Failed to input");
-                }
+                input = sc.nextInt();
+            } catch (InputMismatchException | NumberFormatException e) {
+                exceptionMessage = "Invalid inpyt type";
+                handleInvalidInput(loop, exceptionMessage);
+                continue;
             }
+
+            if (input <= max && input >= min) {
+                return input;
+            }
+            exceptionMessage = "input value must be from " + min + " to " + max;
+            handleInvalidInput(loop, exceptionMessage);
         } while (true);
     }
 
-    public static double inputDouble(String message, double min, double max, boolean loop) throws IllegalArgumentException, InputMismatchException{
+    public static double inputDouble(String message, double min, double max, boolean loop) throws IllegalArgumentException {
+        Scanner sc = new Scanner(System.in);
+        String exceptionMessage;
         do {
+            double input = 0;
+            sc = new Scanner(System.in); //reset input stream
+            System.out.print(message);
             try {
-                Scanner sc = new Scanner(System.in);
-                System.out.print(message);
-                double input = 0;
-                try {
-                    input = sc.nextDouble();
-                } catch (InputMismatchException | NumberFormatException e) {
-                    throw new InputMismatchException("invalid input type");
-                }
-                String exceptionMessage = "input value must be from " + min + " to " + max;
-                if (input > max || input < min) {
-                    throw new IllegalArgumentException(exceptionMessage);
-                }
+                input = sc.nextDouble();
+            } catch (InputMismatchException | NumberFormatException e) {
+                exceptionMessage = "invalid input type";
+                handleInvalidInput(loop, exceptionMessage);
+                continue;
+            }
+
+            if (input <= max && input >= min) {
                 return input;
-            } catch (Exception e) {
-                if(loop == false ) throw e;
-                System.out.println(e.getMessage());
-                boolean check = inputYesNo("Continue to enter this field ?(Y/n)");
-                if (check == false) {
-                    throw new IllegalArgumentException("Failed to input");
-                }
+            }
+
+            exceptionMessage = "input value must be from " + min + " to " + max;
+            handleInvalidInput(loop, exceptionMessage);
+        } while (true);
+    }
+
+    public static LocalDate inputDate(String message, boolean loop) throws IllegalArgumentException {
+        Scanner sc = new Scanner(System.in);
+        String dateInString;
+        LocalDate date;
+        String exceptionMessage = "invalid date format";
+        do {
+            System.out.println(message);
+            System.out.print("Please enter with the format yyyy-MM-dd (Example: 2020-05-06): ");
+            dateInString = sc.nextLine();
+            try {
+                date = LocalDate.parse(dateInString);
+                return date;
+            } catch (DateTimeParseException e) {
+                handleInvalidInput(loop, exceptionMessage);
             }
         } while (true);
     }
@@ -95,6 +102,19 @@ public class InputUtils {
             } else if (choice.toLowerCase().equals("n")) {
                 return false;
             }
+            
+            System.out.println("Please enter 'y' or 'n' only");
         } while (true);
+    }
+    
+    private static void handleInvalidInput(boolean isLoop, String exceptionMessage) throws IllegalArgumentException {
+        if (isLoop == false) {
+            throw new IllegalArgumentException(exceptionMessage);
+        }
+        System.out.println(exceptionMessage);
+        boolean isContinue = inputYesNo("Continue to enter this field ?(Y/n)");
+        if (!isContinue) {
+            throw new IllegalArgumentException("Failed to input");
+        }
     }
 }

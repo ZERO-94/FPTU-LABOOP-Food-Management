@@ -141,6 +141,13 @@ public class Food implements Comparable<Food>, Serializable {
     }
 
     @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + this.id;
+        return hash;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         if (obj == null || !(obj instanceof Food)) {
             return false;

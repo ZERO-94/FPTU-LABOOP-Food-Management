@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class FileUtils {
 
-    public static void writeBinaryFoods(final String filename, List<Food> data) throws IOException {
+    public static void writeFoodsIntoBinaryFile(final String filename, List<Food> data) throws IOException {
         FileOutputStream f = null;
         ObjectOutputStream of = null;
         try {
@@ -22,16 +22,16 @@ public class FileUtils {
             of = new ObjectOutputStream(f);
             of.writeObject(data);
         } finally {
-            if (f != null) {
-                f.close();
-            }
             if (of != null) {
                 of.close();
+            }
+            if (f != null) {
+                f.close();
             }
         }
     }
 
-    public static List<Food> readBinaryFoods(final String filename) throws IOException, ClassNotFoundException {
+    public static List<Food> readFoodsFromBinaryFile(final String filename) throws IOException, ClassNotFoundException {
         FileInputStream f = null;
         ObjectInputStream of = null;
         List<Food> list = null;
@@ -42,11 +42,11 @@ public class FileUtils {
             list = (List<Food>) of.readObject();
             return list;
         } finally {
-            if (f != null) {
-                f.close();
-            }
             if (of != null) {
                 of.close();
+            }
+            if (f != null) {
+                f.close();
             }
         }
     }
